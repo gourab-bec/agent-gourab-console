@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agent Gourab — Control Console</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #e2e8f0; min-height: 100vh; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-bottom: 1px solid #2d3748; padding: 16px 28px; display: flex; align-items: center; gap: 14px; }
+    .header-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: white; flex-shrink: 0; }
+    .header-title { font-size: 18px; font-weight: 700; color: #f7fafc; }
+    .header-sub { font-size: 12px; color: #718096; margin-top: 1px; }
+    .header-right { margin-left: auto; display: flex; gap: 10px; }
+    .hbtn { display: inline-flex; align-items: center; gap: 6px; background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.4); color: #a78bfa; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600; transition: all 0.2s; cursor: pointer; }
+    .hbtn:hover { background: rgba(102,126,234,0.3); color: #c4b5fd; }
+
+    /* Auth */
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 73px); padding: 32px; }
+    .auth-card { background: #1a1a2e; border: 1px solid #2d3748; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+    .auth-card h2 { font-size: 20px; color: #f7fafc; margin-bottom: 8px; }
+    .auth-card p { color: #718096; font-size: 13px; margin-bottom: 24px; }
+    .auth-input { width: 100%; background: #0f0f13; border: 1px solid #2d3748; border-radius: 8px; padding: 12px 16px; color: #e2e8f0; font-size: 15px; outline: none; transition: border 0.2s; margin-bottom: 12px; }
+    .auth-input:focus { border-color: #667eea; }
+    .auth-btn { width: 100%; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; padding: 13px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .auth-error { color: #fc8181; font-size: 13px; margin-top: 10px; }
+
+    /* Layout */
+    #main-screen { display: none; }
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 73px); }
+
+    /* Sidebar */
+    .sidebar { background: #1a1a2e; border-right: 1px solid #2d3748; padding: 20px 0; overflow-y: auto; }
+    .nav-label { font-size: 10px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 20px; margin: 16px 0 6px; }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 16px; margin: 0 8px; border-radius: 8px; cursor: pointer; color: #a0aec0; font-size: 13px; font-weight: 500; transition: all 0.15s; user-select: none; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+    .nav-item.active { background: rgba(102,126,234,0.2); color: #a78bfa; }
+    .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+    .nav-divider { border: none; border-top: 1px solid #2d3748; margin: 10px 16px; }
+
+    /* Content */
+    .content { padding: 28px; overflow-y: auto; max-height: calc(100vh - 73px); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .page-title { font-size: 20px; font-weight: 700; color: #f7fafc; margin-bottom: 3px; }
+    .page-sub { font-size: 13px; color: #718096; margin-bottom: 24px; }
+
+    /* Cards */
+    .card { background: #1a1a2e; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; margin-bottom: 18px; }
+    .card-title { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+    /* Forms */
+    label { display: block; font-size: 12px; color: #a0aec0; margin-bottom: 5px; font-weight: 500; }
+    input[type=text], input[type=number], input[type=password], textarea, select { width: 100%; background: #0f0f13; border: 1px solid #2d3748; border-radius: 8px; padding: 10px 13px; color: #e2e8f0; font-size: 13px; outline: none; transition: border 0.2s; font-family: inherit; }
+    input:focus, textarea:focus, select:focus { border-color: #667eea; }
+    textarea { resize: vertical; min-height: 90px; }
+    select option { background: #1a1a2e; }
+    .form-row { margin-bottom: 13px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-success { background: linear-gradient(135deg, #38a169, #276749); color: white; }
+    .btn-success:hover { opacity: 0.9; }
+    .btn-danger { background: rgba(245,101,101,0.15); border: 1px solid rgba(245,101,101,0.4); color: #fc8181; }
+    .btn-danger:hover { background: rgba(245,101,101,0.3); }
+    .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid #2d3748; color: #a0aec0; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+    .btn-sm { padding: 6px 13px; font-size: 12px; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-card { background: #1a1a2e; border: 1px solid #2d3748; border-radius: 12px; padding: 18px; }
+    .stat-value { font-size: 26px; font-weight: 700; color: #a78bfa; }
+    .stat-label { font-size: 11px; color: #4a5568; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { text-align: left; padding: 9px 11px; color: #4a5568; font-weight: 600; border-bottom: 1px solid #2d3748; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .data-table td { padding: 9px 11px; border-bottom: 1px solid #1e2533; color: #a0aec0; vertical-align: top; }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .data-table td:first-child { color: #e2e8f0; font-weight: 500; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .badge-blue { background: rgba(66,153,225,0.15); color: #63b3ed; }
+    .badge-green { background: rgba(72,187,120,0.15); color: #68d391; }
+    .badge-orange { background: rgba(237,137,54,0.15); color: #f6ad55; }
+    .badge-red { background: rgba(245,101,101,0.15); color: #fc8181; }
+    .badge-purple { background: rgba(159,122,234,0.15); color: #b794f4; }
+
+    /* Notifications */
+    .notif-item { border: 1px solid #2d3748; border-radius: 10px; padding: 14px; margin-bottom: 10px; background: #0f0f13; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+    .notif-name { font-weight: 600; color: #e2e8f0; font-size: 13px; }
+    .notif-meta { font-size: 11px; color: #4a5568; }
+    .notif-body { font-size: 12px; color: #718096; white-space: pre-wrap; line-height: 1.6; max-height: 180px; overflow-y: auto; }
+    .notif-unread { border-color: rgba(102,126,234,0.5); background: rgba(102,126,234,0.04); }
+
+    /* Sessions */
+    .session-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid #1e2533; }
+    .session-row:last-child { border-bottom: none; }
+    .session-info { flex: 1; }
+    .session-name { font-weight: 600; color: #e2e8f0; font-size: 13px; }
+    .session-meta { font-size: 11px; color: #4a5568; margin-top: 2px; }
+    .progress-bar { width: 90px; height: 5px; background: #2d3748; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; }
+
+    /* Resume Generator */
+    .resume-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 180px); }
+    .resume-input-panel { display: flex; flex-direction: column; gap: 12px; }
+    .resume-output-panel { display: flex; flex-direction: column; gap: 10px; }
+    .jd-textarea { flex: 1; min-height: 300px; font-size: 13px; line-height: 1.6; }
+    .resume-preview { flex: 1; background: white; border-radius: 10px; border: 1px solid #2d3748; overflow: auto; min-height: 400px; }
+    .resume-preview iframe { width: 100%; height: 100%; border: none; border-radius: 10px; }
+    .resume-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .generating-indicator { display: none; align-items: center; gap: 10px; padding: 14px 18px; background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.3); border-radius: 10px; color: #a78bfa; font-size: 13px; font-weight: 500; }
+    .generating-indicator.show { display: flex; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 22px; right: 22px; background: #276749; color: #9ae6b4; border: 1px solid #38a169; border-radius: 10px; padding: 11px 18px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; max-width: 340px; }
+    .toast.error { background: #742a2a; color: #fc8181; border-color: #e53e3e; }
+    .toast.show { opacity: 1; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #1a1a2e; border: 1px solid #2d3748; border-radius: 14px; padding: 28px; width: 380px; max-width: 90vw; }
+    .modal h3 { font-size: 16px; color: #f7fafc; margin-bottom: 5px; }
+    .modal p { color: #718096; font-size: 13px; margin-bottom: 18px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #4a5568; }
+    .empty-state-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-state-text { font-size: 13px; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .resume-split { grid-template-columns: 1fr; height: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">G</div>
+  <div>
+    <div class="header-title">Agent Gourab — Control Console</div>
+    <div class="header-sub">KB · Metrics · Sessions · Resume Generator · Video Resume</div>
+  </div>
+  <div class="header-right">
+    <a href="https://gourabbasu.getbriefed.to" target="_blank" class="hbtn">↗ Open Agent</a>
+  </div>
+</div>
+
+<!-- Auth -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div style="font-size:36px;margin-bottom:14px;">🔐</div>
+    <h2>Console Access</h2>
+    <p>Enter your PIN to manage Agent Gourab</p>
+    <input type="password" class="auth-input" id="pin-input" placeholder="Enter PIN" maxlength="30"/>
+    <button class="auth-btn" onclick="checkPin()">Unlock</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main-screen">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span>Dashboard</div>
+
+      <div class="nav-label">Resume</div>
+      <div class="nav-item" onclick="switchTab('resume-gen')" id="nav-resume-gen"><span class="nav-icon">📄</span>Resume Generator</div>
+      <div class="nav-item" onclick="switchTab('video-resume')" id="nav-video-resume"><span class="nav-icon">🎬</span>Video Resume</div>
+
+      <div class="nav-label">Knowledge</div>
+      <div class="nav-item" onclick="switchTab('add-text')" id="nav-add-text"><span class="nav-icon">✏️</span>Add Fact</div>
+      <div class="nav-item" onclick="switchTab('add-metric')" id="nav-add-metric"><span class="nav-icon">🔢</span>Add Metric</div>
+      <div class="nav-item" onclick="switchTab('view-kb')" id="nav-view-kb"><span class="nav-icon">📚</span>View KB</div>
+      <div class="nav-item" onclick="switchTab('view-metrics')" id="nav-view-metrics"><span class="nav-icon">📌</span>View Metrics</div>
+
+      <hr class="nav-divider"/>
+      <div class="nav-label">Activity</div>
+      <div class="nav-item" onclick="switchTab('notifications')" id="nav-notifications"><span class="nav-icon">🔔</span>Notifications <span id="notif-badge"></span></div>
+      <div class="nav-item" onclick="switchTab('sessions')" id="nav-sessions"><span class="nav-icon">💬</span>Sessions</div>
+      <div class="nav-item" onclick="switchTab('companies')" id="nav-companies"><span class="nav-icon">🏢</span>Companies</div>
+
+      <hr class="nav-divider"/>
+      <div class="nav-label">Rules</div>
+      <div class="nav-item" onclick="switchTab('company-rules')" id="nav-company-rules"><span class="nav-icon">⚙️</span>Company Rules</div>
+    </div>
+
+    <div class="content">
+
+      <!-- Dashboard -->
+      <div class="tab-pane active" id="tab-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Live overview of Agent Gourab</div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="stat-kb">—</div><div class="stat-label">KB Chunks</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-metrics">—</div><div class="stat-label">Metrics</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-sessions">—</div><div class="stat-label">Sessions</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-unread">—</div><div class="stat-label">Unread</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Quick Add Fact</div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Category</label>
+              <select id="quick-category">
+                <option value="career">Career</option><option value="skills">Skills</option><option value="deals">Deals</option><option value="education">Education</option><option value="certifications">Certifications</option><option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Title</label>
+              <input type="text" id="quick-title" placeholder="Short label"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Fact or update</label>
+            <textarea id="quick-text" placeholder="e.g. Completed AWS Solutions Architect certification, April 2026"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="quickAddFact()">Add to KB</button>
+        </div>
+      </div>
+
+      <!-- Resume Generator -->
+      <div class="tab-pane" id="tab-resume-gen">
+        <div class="page-title">Resume Generator</div>
+        <div class="page-sub">Paste any job description — get a tailored, ATS-optimized 2-page resume in seconds</div>
+        <div class="resume-split">
+          <div class="resume-input-panel">
+            <div class="card" style="flex:1;display:flex;flex-direction:column;margin-bottom:0;">
+              <div class="card-title">📋 Job Description</div>
+              <div class="form-row" style="flex:1;display:flex;flex-direction:column;">
+                <label>Paste the full job description here</label>
+                <textarea id="jd-input" class="jd-textarea" placeholder="Paste the job title, company, responsibilities, requirements...&#10;&#10;Example:&#10;Senior Director, Partner Sales — Anthropic&#10;We are looking for a seasoned enterprise sales leader to..."></textarea>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="generateResume()" id="gen-btn">✨ Generate Resume</button>
+                <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+              </div>
+              <div class="generating-indicator" id="gen-indicator">
+                <div class="spinner"></div>
+                Generating tailored resume — usually 15–25 seconds...
+              </div>
+            </div>
+          </div>
+          <div class="resume-output-panel">
+            <div class="card" style="flex:1;display:flex;flex-direction:column;margin-bottom:0;padding:14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <div class="card-title" style="margin-bottom:0;">📄 Generated Resume</div>
+                <div class="resume-actions" id="resume-actions" style="display:none;">
+                  <button class="btn btn-success btn-sm" onclick="printResume()">🖨 Print / Save PDF</button>
+                  <button class="btn btn-ghost btn-sm" onclick="copyHTML()">Copy HTML</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openInTab()">Open in Tab</button>
+                </div>
+              </div>
+              <div class="resume-preview" id="resume-preview" style="flex:1;">
+                <div class="empty-state" style="padding:60px 20px;">
+                  <div class="empty-state-icon">📄</div>
+                  <div class="empty-state-text">Your tailored resume will appear here</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Resume -->
+      <div class="tab-pane" id="tab-video-resume">
+        <div class="page-title">Video Resume Builder</div>
+        <div class="page-sub">Generate your 90-second script → read it on camera → upload → get a permanent shareable URL. Zero cost.</div>
+
+        <!-- Step 1: JD Input -->
+        <div class="card" id="vr-step1">
+          <div class="card-title">① Job Description</div>
+          <div class="form-row">
+            <label>Role Title (optional)</label>
+            <input type="text" id="vr-role" placeholder="e.g. Partner Alliance Manager — Anthropic"/>
+          </div>
+          <div class="form-row">
+            <label>Paste the job description</label>
+            <textarea id="vr-jd" style="min-height:140px;" placeholder="Paste full job description here..."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" onclick="generateScript()" id="vr-gen-btn">✨ Generate 90-sec Script</button>
+            <div class="generating-indicator" id="vr-gen-indicator"><div class="spinner"></div> Writing your script — 15–20 seconds...</div>
+          </div>
+        </div>
+
+        <!-- Step 2: Script + Teleprompter -->
+        <div class="card" id="vr-step2" style="display:none;">
+          <div class="card-title">② Your Script <span id="vr-word-count" style="font-weight:400;color:#4a5568;font-size:12px;"></span></div>
+
+          <!-- Section cards -->
+          <div id="vr-sections" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
+
+          <!-- Teleprompter -->
+          <div style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <label style="margin:0;">Full Script (edit freely)</label>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="launchTeleprompter()">📺 Teleprompter Mode</button>
+                <button class="btn btn-ghost btn-sm" onclick="copyScript()">Copy</button>
+              </div>
+            </div>
+            <textarea id="vr-full-script" style="min-height:180px;font-size:14px;line-height:1.7;"></textarea>
+          </div>
+
+          <button class="btn btn-primary" onclick="showRecorder()">🎤 Record My Video →</button>
+        </div>
+
+        <!-- Step 3: Record -->
+        <div class="card" id="vr-step3" style="display:none;">
+          <div class="card-title">③ Record Your Video</div>
+          <p style="font-size:12px;color:#718096;margin-bottom:14px;">Your camera & mic are used only in your browser. Nothing is sent until you click Save.</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <!-- Live preview -->
+            <div>
+              <label>Live Camera</label>
+              <video id="vr-live" autoplay muted playsinline style="width:100%;border-radius:10px;background:#000;aspect-ratio:16/9;object-fit:cover;"></video>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                <button class="btn btn-danger" onclick="startRecording()" id="vr-start-btn">● Start Recording</button>
+                <button class="btn btn-ghost" onclick="stopRecording()" id="vr-stop-btn" disabled>⏹ Stop</button>
+                <span id="vr-timer" style="align-self:center;font-size:13px;color:#fc8181;font-weight:600;"></span>
+              </div>
+            </div>
+
+            <!-- Playback + script reminder -->
+            <div>
+              <label>Playback / Review</label>
+              <video id="vr-playback" controls style="width:100%;border-radius:10px;background:#111;aspect-ratio:16/9;object-fit:cover;"></video>
+              <div style="margin-top:10px;padding:10px 12px;background:#0f0f13;border-radius:8px;border:1px solid #2d3748;max-height:120px;overflow-y:auto;">
+                <div style="font-size:10px;color:#4a5568;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Script reminder</div>
+                <div id="vr-script-reminder" style="font-size:12px;color:#a0aec0;line-height:1.6;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-success" onclick="saveVideoResume()" id="vr-save-btn" disabled>💾 Save & Get Link</button>
+            <button class="btn btn-ghost btn-sm" onclick="retake()">↩ Retake</button>
+            <div class="generating-indicator" id="vr-upload-indicator"><div class="spinner"></div> Uploading to Supabase — free storage...</div>
+          </div>
+        </div>
+
+        <!-- Step 4: Result -->
+        <div class="card" id="vr-step4" style="display:none;">
+          <div class="card-title">④ Your Video Resume is Live ✓</div>
+          <div style="background:#0f3d2a;border:1px solid #276749;border-radius:10px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:11px;color:#68d391;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Permanent Public URL</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="vr-result-url" readonly style="flex:1;font-size:12px;background:#0a2419;border-color:#276749;color:#68d391;"/>
+              <button class="btn btn-success btn-sm" onclick="copyVideoUrl()">Copy Link</button>
+              <a id="vr-open-link" href="#" target="_blank" class="btn btn-ghost btn-sm">Open ↗</a>
+            </div>
+          </div>
+          <video id="vr-final-player" controls style="width:100%;max-width:640px;border-radius:10px;background:#000;"></video>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="switchTab('video-library')">📚 View All Videos</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetVideoBuilder()">+ Make Another</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Library -->
+      <div class="tab-pane" id="tab-video-library">
+        <div class="page-title">Video Resume Library</div>
+        <div class="page-sub">All saved video resumes — copy any link to share</div>
+        <div id="vr-library-list"><div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Loading...</div></div></div>
+      </div>
+
+      <!-- Teleprompter Overlay -->
+      <div id="vr-teleprompter" style="display:none;position:fixed;inset:0;background:#000;z-index:9000;flex-direction:column;align-items:center;justify-content:center;padding:40px;">
+        <div style="max-width:700px;width:100%;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+            <div style="color:#68d391;font-size:13px;font-weight:600;">📺 TELEPROMPTER — Read naturally at your own pace</div>
+            <button onclick="closeTeleprompter()" style="background:none;border:none;color:#718096;cursor:pointer;font-size:20px;">✕</button>
+          </div>
+          <div id="vr-teleprompter-text" style="font-size:28px;line-height:1.8;color:#f7fafc;font-family:Georgia,serif;text-align:center;"></div>
+        </div>
+        <div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:16px;">
+          <button onclick="scrollTeleprompter(-1)" class="btn btn-ghost">↑ Slower</button>
+          <button onclick="toggleTeleprompterScroll()" id="tp-play-btn" class="btn btn-primary">▶ Auto-Scroll</button>
+          <button onclick="scrollTeleprompter(1)" class="btn btn-ghost">↓ Faster</button>
+          <button onclick="closeTeleprompter()" class="btn btn-danger btn-sm">✕ Close</button>
+        </div>
+      </div>
+
+      <!-- Add Text -->
+      <div class="tab-pane" id="tab-add-text">
+        <div class="page-title">Add Fact to KB</div>
+        <div class="page-sub">Add new career facts, wins, certifications, or any update</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row"><label>Category</label>
+              <select id="at-category"><option value="career">Career</option><option value="skills">Skills</option><option value="deals">Deals</option><option value="education">Education</option><option value="certifications">Certifications</option><option value="other">Other</option></select>
+            </div>
+            <div class="form-row"><label>Title</label><input type="text" id="at-title" placeholder="Short descriptive title"/></div>
+          </div>
+          <div class="form-row"><label>Content</label><textarea id="at-content" style="min-height:160px;" placeholder="Full text to add..."></textarea></div>
+          <button class="btn btn-primary" onclick="addKBChunk()">Add to KB</button>
+        </div>
+      </div>
+
+      <!-- Add Metric -->
+      <div class="tab-pane" id="tab-add-metric">
+        <div class="page-title">Add / Update Metric</div>
+        <div class="page-sub">Verified numbers injected into every response and resume</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row"><label>Metric Key (no spaces)</label><input type="text" id="m-key" placeholder="e.g. aws_cert_2026"/></div>
+            <div class="form-row"><label>Label</label><input type="text" id="m-label" placeholder="e.g. AWS Cert Year"/></div>
+          </div>
+          <div class="form-row"><label>Value</label><input type="text" id="m-value" placeholder="e.g. 2026"/></div>
+          <div class="form-row"><label>Context</label><input type="text" id="m-context" placeholder="e.g. AWS Solutions Architect Professional"/></div>
+          <button class="btn btn-primary" onclick="addMetric()">Save Metric</button>
+        </div>
+      </div>
+
+      <!-- View KB -->
+      <div class="tab-pane" id="tab-view-kb">
+        <div class="page-title">Knowledge Base</div>
+        <div class="page-sub">All KB chunks powering Agent Gourab's responses</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div id="kb-loading" style="padding:20px;color:#4a5568;">Loading...</div>
+          <table class="data-table" id="kb-table" style="display:none;">
+            <thead><tr><th>Title</th><th>Category</th><th>Preview</th><th></th></tr></thead>
+            <tbody id="kb-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View Metrics -->
+      <div class="tab-pane" id="tab-view-metrics">
+        <div class="page-title">Verified Metrics</div>
+        <div class="page-sub">Locked numbers — injected into every response and resume</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div id="metrics-loading" style="padding:20px;color:#4a5568;">Loading...</div>
+          <table class="data-table" id="metrics-table" style="display:none;">
+            <thead><tr><th>Key</th><th>Label</th><th>Value</th><th>Context</th><th></th></tr></thead>
+            <tbody id="metrics-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="tab-pane" id="tab-notifications">
+        <div class="page-title">Notifications</div>
+        <div class="page-sub">Session transcripts and budget alerts</div>
+        <div id="notif-list"><div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Loading...</div></div></div>
+      </div>
+
+      <!-- Sessions -->
+      <div class="tab-pane" id="tab-sessions">
+        <div class="page-title">Sessions</div>
+        <div class="page-sub">All interviewer sessions with budget tracking</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div id="sessions-list"><div style="padding:20px;color:#4a5568;">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- Companies -->
+      <div class="tab-pane" id="tab-companies">
+        <div class="page-title">Company Memory</div>
+        <div class="page-sub">Per-company Q&A history for consistent answers</div>
+        <div id="companies-list"><div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Loading...</div></div></div>
+      </div>
+
+      <!-- Company Rules -->
+      <div class="tab-pane" id="tab-company-rules">
+        <div class="page-title">Company Rules</div>
+        <div class="page-sub">Custom answer overrides per company</div>
+        <div class="card">
+          <div class="form-row"><label>Company Name</label><input type="text" id="rule-company" placeholder="e.g. Anthropic"/></div>
+          <div class="form-row"><label>Topic Keywords (comma-separated)</label><input type="text" id="rule-keywords" placeholder="e.g. salary, relocation"/></div>
+          <div class="form-row"><label>Custom Rule / Answer</label><textarea id="rule-text" placeholder="e.g. If asked about compensation, say Gourab is flexible and market-aligned."></textarea></div>
+          <button class="btn btn-primary" onclick="addCompanyRule()">Save Rule</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Topup Modal -->
+<div class="modal-overlay" id="topup-modal">
+  <div class="modal">
+    <h3>Top Up Session</h3>
+    <p id="topup-meta">Add more budget to this session</p>
+    <div class="form-row"><label>Additional budget (USD)</label><input type="number" id="topup-amount" value="1.00" step="0.50" min="0.50" max="10.00"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeTopup()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmTopup()">Add Budget</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API    = 'https://agent-gourab-api.onrender.com';
+  const SB_URL = 'https://zlgqnzwfllgqfdzbssno.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsZ3FuendmbGxncWZkemJzc25vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjU3MDMwNywiZXhwIjoyMDkyMTQ2MzA3fQ.KGpwElLGYF8FBnv-_xqMVBspsFoFxBgVkFW1ZUY45QM';
+  const PIN    = 'Gourab2026';
+
+  let currentTopupSession = null;
+  let currentResumeHTML   = '';
+
+  // ── Auth ──────────────────────────────────────────────────────────
+  function checkPin() {
+    if (document.getElementById('pin-input').value.trim() === PIN) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-screen').style.display = 'block';
+      loadDashboard();
+    } else {
+      document.getElementById('auth-error').textContent = 'Incorrect PIN.';
+      document.getElementById('pin-input').value = '';
+    }
+  }
+  document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+
+  // ── Nav ───────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const loaders = { 'view-kb': loadKB, 'view-metrics': loadMetrics, 'notifications': loadNotifications, 'sessions': loadSessions, 'companies': loadCompanies, 'dashboard': loadDashboard };
+    if (loaders[name]) loaders[name]();
+  }
+
+  // ── Supabase ──────────────────────────────────────────────────────
+  async function sb(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': method === 'POST' ? 'return=representation' : '' } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(SB_URL + path, opts);
+    if (!r.ok) throw new Error(await r.text());
+    const t = await r.text(); return t ? JSON.parse(t) : [];
+  }
+
+  // ── Embed ─────────────────────────────────────────────────────────
+  async function getEmbedding(text) {
+    const r = await fetch(API + '/embed', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({text}) });
+    if (!r.ok) throw new Error('Embed failed');
+    return (await r.json()).embedding;
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const [kb, metrics, sessions, notifs] = await Promise.all([
+        sb('GET', '/rest/v1/knowledge_base?select=id'),
+        sb('GET', '/rest/v1/verified_metrics?select=id'),
+        sb('GET', '/rest/v1/interviewer_sessions?select=id'),
+        sb('GET', '/rest/v1/gourab_notifications?select=id&is_read=eq.false'),
+      ]);
+      document.getElementById('stat-kb').textContent = kb.length;
+      document.getElementById('stat-metrics').textContent = metrics.length;
+      document.getElementById('stat-sessions').textContent = sessions.length;
+      document.getElementById('stat-unread').textContent = notifs.length;
+      if (notifs.length > 0) document.getElementById('notif-badge').innerHTML = ` <span class="badge badge-orange">${notifs.length}</span>`;
+    } catch(e) { console.error(e); }
+  }
+
+  // ── Resume Generator ──────────────────────────────────────────────
+  async function generateResume() {
+    const jd = document.getElementById('jd-input').value.trim();
+    if (!jd) { toast('Paste a job description first', true); return; }
+
+    const btn = document.getElementById('gen-btn');
+    const indicator = document.getElementById('gen-indicator');
+    btn.disabled = true;
+    indicator.classList.add('show');
+    document.getElementById('resume-actions').style.display = 'none';
+    document.getElementById('resume-preview').innerHTML = '<div class="empty-state"><div class="spinner" style="width:28px;height:28px;border-width:3px;margin:0 auto;"></div><div class="empty-state-text" style="margin-top:14px;">Generating your tailored resume...</div></div>';
+
+    try {
+      const r = await fetch(API + '/generate-resume', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ job_description: jd })
+      });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+
+      currentResumeHTML = data.resume;
+
+      // Render in iframe for clean isolated preview
+      const preview = document.getElementById('resume-preview');
+      preview.innerHTML = '<iframe id="resume-iframe"></iframe>';
+      const iframe = document.getElementById('resume-iframe');
+      iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:10px;';
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open(); doc.write(currentResumeHTML); doc.close();
+
+      document.getElementById('resume-actions').style.display = 'flex';
+      toast('Resume generated — click Print to save as PDF');
+    } catch(e) {
+      document.getElementById('resume-preview').innerHTML = `<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">Error: ${e.message}</div></div>`;
+      toast('Generation failed: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+      indicator.classList.remove('show');
+    }
+  }
+
+  function printResume() {
+    const iframe = document.getElementById('resume-iframe');
+    if (!iframe) { toast('Generate a resume first', true); return; }
+    iframe.contentWindow.print();
+  }
+
+  function openInTab() {
+    if (!currentResumeHTML) { toast('Generate a resume first', true); return; }
+    const w = window.open('', '_blank');
+    w.document.write(currentResumeHTML);
+    w.document.close();
+  }
+
+  function copyHTML() {
+    if (!currentResumeHTML) { toast('Generate a resume first', true); return; }
+    navigator.clipboard.writeText(currentResumeHTML).then(() => toast('HTML copied to clipboard'));
+  }
+
+  function clearAll() {
+    document.getElementById('jd-input').value = '';
+    currentResumeHTML = '';
+    document.getElementById('resume-preview').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">Your tailored resume will appear here</div></div>';
+    document.getElementById('resume-actions').style.display = 'none';
+  }
+
+  // ── KB ────────────────────────────────────────────────────────────
+  async function loadKB() {
+    document.getElementById('kb-loading').style.display = 'block';
+    document.getElementById('kb-table').style.display = 'none';
+    try {
+      const rows = await sb('GET', '/rest/v1/knowledge_base?select=id,title,category,content&order=id.asc');
+      document.getElementById('kb-tbody').innerHTML = rows.map(r => `
+        <tr><td>${r.title||'—'}</td><td><span class="badge badge-blue">${r.category||'—'}</span></td>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4a5568;">${(r.content||'').substring(0,100)}...</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteKB(${r.id},'${(r.title||'').replace(/'/g,"\\'")}')">Delete</button></td></tr>`).join('');
+      document.getElementById('kb-loading').style.display = 'none';
+      document.getElementById('kb-table').style.display = 'table';
+    } catch(e) { document.getElementById('kb-loading').textContent = 'Error: ' + e.message; }
+  }
+
+  async function quickAddFact() {
+    const text = document.getElementById('quick-text').value.trim();
+    const category = document.getElementById('quick-category').value;
+    const title = document.getElementById('quick-title').value.trim() || text.substring(0,50);
+    if (!text) { toast('Enter a fact first', true); return; }
+    try {
+      const embedding = await getEmbedding(title + ' ' + text);
+      await sb('POST', '/rest/v1/knowledge_base', {category, title, content: text, embedding});
+      toast('Fact added to KB');
+      document.getElementById('quick-text').value = '';
+      document.getElementById('quick-title').value = '';
+      loadDashboard();
+    } catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  async function addKBChunk() {
+    const category = document.getElementById('at-category').value;
+    const title    = document.getElementById('at-title').value.trim();
+    const content  = document.getElementById('at-content').value.trim();
+    if (!title || !content) { toast('Title and content required', true); return; }
+    try {
+      const embedding = await getEmbedding(title + ' ' + content);
+      await sb('POST', '/rest/v1/knowledge_base', {category, title, content, embedding});
+      toast('Added: ' + title);
+      document.getElementById('at-title').value = '';
+      document.getElementById('at-content').value = '';
+    } catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  async function deleteKB(id, title) {
+    if (!confirm(`Delete: "${title}"?`)) return;
+    try { await sb('DELETE', `/rest/v1/knowledge_base?id=eq.${id}`); toast('Deleted'); loadKB(); }
+    catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  // ── Metrics ───────────────────────────────────────────────────────
+  async function loadMetrics() {
+    document.getElementById('metrics-loading').style.display = 'block';
+    document.getElementById('metrics-table').style.display = 'none';
+    try {
+      const rows = await sb('GET', '/rest/v1/verified_metrics?select=*&order=id.asc');
+      document.getElementById('metrics-tbody').innerHTML = rows.map(r => `
+        <tr><td><code style="font-size:11px;color:#68d391;">${r.metric_key}</code></td>
+        <td>${r.label}</td><td style="color:#a78bfa;font-weight:600;">${r.value}</td>
+        <td style="color:#4a5568;">${r.context||''}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteMetric(${r.id},'${(r.label||'').replace(/'/g,"\\'")}')">Delete</button></td></tr>`).join('');
+      document.getElementById('metrics-loading').style.display = 'none';
+      document.getElementById('metrics-table').style.display = 'table';
+    } catch(e) { document.getElementById('metrics-loading').textContent = 'Error: ' + e.message; }
+  }
+
+  async function addMetric() {
+    const key = document.getElementById('m-key').value.trim().replace(/\s+/g,'_');
+    const label = document.getElementById('m-label').value.trim();
+    const value = document.getElementById('m-value').value.trim();
+    const context = document.getElementById('m-context').value.trim();
+    if (!key || !label || !value) { toast('Key, label and value required', true); return; }
+    try {
+      const existing = await sb('GET', `/rest/v1/verified_metrics?metric_key=eq.${encodeURIComponent(key)}&select=id`);
+      if (existing.length > 0) { await sb('PATCH', `/rest/v1/verified_metrics?metric_key=eq.${encodeURIComponent(key)}`, {label,value,context}); toast('Updated: ' + label); }
+      else { await sb('POST', '/rest/v1/verified_metrics', {metric_key:key,label,value,context}); toast('Added: ' + label); }
+      ['m-key','m-label','m-value','m-context'].forEach(id => document.getElementById(id).value='');
+    } catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  async function deleteMetric(id, label) {
+    if (!confirm(`Delete metric: "${label}"?`)) return;
+    try { await sb('DELETE', `/rest/v1/verified_metrics?id=eq.${id}`); toast('Deleted'); loadMetrics(); }
+    catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  // ── Notifications ─────────────────────────────────────────────────
+  async function loadNotifications() {
+    const el = document.getElementById('notif-list');
+    try {
+      const rows = await sb('GET', '/rest/v1/gourab_notifications?select=*&order=created_at.desc&limit=50');
+      if (!rows.length) { el.innerHTML = "<div class='empty-state'><div class='empty-state-icon'>🔔</div><div class='empty-state-text'>No notifications yet</div></div>"; return; }
+      el.innerHTML = rows.map(n => `
+        <div class="notif-item ${!n.is_read?'notif-unread':''}">
+          <div class="notif-header">
+            <div><span class="notif-name">${n.interviewer_name||'Unknown'}</span>
+              <span style="color:#4a5568;font-size:11px;margin-left:8px;">${n.interviewer_email||''}</span>
+              ${n.company?`<span class="badge badge-blue" style="margin-left:6px;">${n.company}</span>`:''}
+            </div>
+            <div class="notif-meta">${n.created_at?new Date(n.created_at).toLocaleString():''} · ${n.question_count||0} Qs</div>
+          </div>
+          <div class="notif-body">${n.summary||''}</div>
+          ${!n.is_read?`<button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="markRead(${n.id},this)">Mark read</button>`:''}
+        </div>`).join('');
+    } catch(e) { el.innerHTML = `<div class="empty-state"><div class="empty-state-text">Error: ${e.message}</div></div>`; }
+  }
+
+  async function markRead(id, btn) {
+    try { await sb('PATCH', `/rest/v1/gourab_notifications?id=eq.${id}`, {is_read:true}); btn.closest('.notif-item').classList.remove('notif-unread'); btn.remove(); loadDashboard(); }
+    catch(e) { toast('Error: ' + e.message, true); }
+  }
+
+  // ── Sessions ──────────────────────────────────────────────────────
+  async function loadSessions() {
+    const el = document.getElementById('sessions-list');
+    try {
+      const sessions = await sb('GET', '/rest/v1/interviewer_sessions?select=*&order=created_at.desc&limit=50');
+      const ivIds = [...new Set(sessions.map(s => s.interviewer_id).filter(Boolean))];
+      let ivMap = {};
+      if (ivIds.length) { const ivs = await sb('GET', `/rest/v1/interviewers?id=in.(${ivIds.join(',')})&select=id,name,email,company`); ivs.forEach(iv => ivMap[iv.id]=iv); }
+      if (!sessions.length) { el.innerHTML = "<div class='empty-state'><div class='empty-state-icon'>💬</div><div class='empty-state-text'>No sessions yet</div></div>"; return; }
+      el.innerHTML = sessions.map(s => {
+        const iv = ivMap[s.interviewer_id]||{};
+        const pct = s.budget_usd>0?Math.min(100,(s.cost_usd/s.budget_usd)*100):0;
+        const col = pct>=100?'#fc8181':pct>=80?'#f6ad55':'#68d391';
+        const status = s.is_complete?`<span class="badge badge-green">Done</span>`:s.budget_exhausted?`<span class="badge badge-red">Budget Out</span>`:`<span class="badge badge-blue">Active</span>`;
+        return `<div class="session-row">
+          <div class="session-info"><div class="session-name">${iv.name||'Unknown'} ${iv.company?`<span style="color:#4a5568;font-weight:400;">@ ${iv.company}</span>`:''}</div>
+          <div class="session-meta">${iv.email||''} · ${s.role_context||'No role'} · ${s.created_at?new Date(s.created_at).toLocaleDateString():''}</div></div>
+          <div style="text-align:right;margin-right:14px;"><div style="font-size:11px;color:#4a5568;margin-bottom:3px;">$${(s.cost_usd||0).toFixed(4)} / $${(s.budget_usd||1).toFixed(2)}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col};"></div></div></div>
+          ${status}
+          ${s.budget_exhausted&&!s.is_complete?`<button class="btn btn-primary btn-sm" onclick="openTopup(${s.id},'${(iv.name||'').replace(/'/g,"\\'")}')">Top Up</button>`:''}
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = `<div style='padding:20px;color:#fc8181;'>Error: ${e.message}</div>`; }
+  }
+
+  // ── Topup ─────────────────────────────────────────────────────────
+  function openTopup(sid, name) { currentTopupSession=sid; document.getElementById('topup-meta').textContent=`Add budget for session with ${name}`; document.getElementById('topup-modal').classList.add('open'); }
+  function closeTopup() { currentTopupSession=null; document.getElementById('topup-modal').classList.remove('open'); }
+  async function confirmTopup() {
+    if (!currentTopupSession) return;
+    const amount = parseFloat(document.getElementById('topup-amount').value)||1;
+    try {
+      const s = await sb('GET', `/rest/v1/interviewer_sessions?id=eq.${currentTopupSession}&select=budget_usd`);
+      if (!s.length) { toast('Session not found',true); return; }
+      await sb('PATCH', `/rest/v1/interviewer_sessions?id=eq.${currentTopupSession}`, {budget_usd:(parseFloat(s[0].budget_usd)||1)+amount, budget_exhausted:false});
+      await sb('POST', '/rest/v1/session_topups', {session_id:currentTopupSession,amount_usd:amount,note:'Console topup'});
+      toast(`Added $${amount.toFixed(2)}`); closeTopup(); loadSessions();
+    } catch(e) { toast('Error: '+e.message,true); }
+  }
+
+  // ── Companies ─────────────────────────────────────────────────────
+  async function loadCompanies() {
+    const el = document.getElementById('companies-list');
+    try {
+      const rows = await sb('GET', '/rest/v1/company_memory?select=*&order=last_seen.desc.nullslast');
+      if (!rows.length) { el.innerHTML = "<div class='empty-state'><div class='empty-state-icon'>🏢</div><div class='empty-state-text'>No company memory yet</div></div>"; return; }
+      el.innerHTML = rows.map(c => `
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-title">🏢 ${c.company_display||c.company_name} <span class="badge badge-blue">${c.session_count||0} sessions</span></div>
+          ${(c.answers_given||[]).slice(-3).map(a=>`<div style="border-left:2px solid #2d3748;padding-left:10px;margin-bottom:8px;">
+            <div style="font-size:11px;color:#a78bfa;margin-bottom:2px;">Q: ${a.question||''}</div>
+            <div style="font-size:11px;color:#718096;">A: ${(a.answer||'').substring(0,180)}${a.answer&&a.answer.length>180?'...':''}</div>
+          </div>`).join('')}
+        </div>`).join('');
+    } catch(e) { el.innerHTML = `<div class='empty-state'><div class='empty-state-text'>Error: ${e.message}</div></div>`; }
+  }
+
+  // ── Company Rules ─────────────────────────────────────────────────
+  async function addCompanyRule() {
+    const company = document.getElementById('rule-company').value.trim();
+    const keywords = document.getElementById('rule-keywords').value.trim();
+    const text = document.getElementById('rule-text').value.trim();
+    if (!company||!text) { toast('Company and rule required',true); return; }
+    try {
+      const key = company.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const existing = await sb('GET', `/rest/v1/company_memory?company_name=eq.${encodeURIComponent(key)}&select=id,custom_rules`);
+      const rule = {topic_keywords:keywords, override_text:text, added:new Date().toISOString()};
+      if (existing.length) { await sb('PATCH', `/rest/v1/company_memory?id=eq.${existing[0].id}`, {custom_rules:[...(existing[0].custom_rules||[]),rule]}); }
+      else { await sb('POST', '/rest/v1/company_memory', {company_name:key,company_display:company,custom_rules:[rule],interviewer_count:0,session_count:0}); }
+      toast('Rule saved for '+company);
+      ['rule-company','rule-keywords','rule-text'].forEach(id=>document.getElementById(id).value='');
+    } catch(e) { toast('Error: '+e.message,true); }
+  }
+
+  // ── Video Resume ────────────────────────────────────────────────────
+
+  async function generateScript() {
+    const jd   = document.getElementById('vr-jd').value.trim();
+    const role = document.getElementById('vr-role').value.trim();
+    if (!jd) { toast('Paste a job description first', true); return; }
+    vrCurrentJDTitle = role || jd.substring(0, 80);
+
+    const btn = document.getElementById('vr-gen-btn');
+    const ind = document.getElementById('vr-gen-indicator');
+    btn.disabled = true; ind.classList.add('show');
+
+    try {
+      const r = await fetch(API + '/generate-video-script', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ job_description: jd, role_title: role })
+      });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+
+      vrCurrentScript = data.full_script || '';
+
+      // Render section cards
+      const sectionColors = { intro:'#553c9a', story:'#1a4a6e', impact:'#276749', fit:'#744210', close:'#553c9a' };
+      document.getElementById('vr-sections').innerHTML = (data.sections || []).map(s => `
+        <div style="background:${sectionColors[s.id]||'#1a1a2e'}22;border:1px solid ${sectionColors[s.id]||'#2d3748'}55;border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${sectionColors[s.id]||'#a0aec0'};margin-bottom:5px;">${s.title}</div>
+          <div style="font-size:12px;color:#e2e8f0;line-height:1.6;">${s.text}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('vr-full-script').value = vrCurrentScript;
+      document.getElementById('vr-word-count').textContent =
+        `— ${data.word_count||0} words ≈ ${data.estimated_seconds||90}s`;
+
+      document.getElementById('vr-step2').style.display = 'block';
+      document.getElementById('vr-step2').scrollIntoView({behavior:'smooth',block:'start'});
+      toast('Script ready — review it, then click Record');
+    } catch(e) {
+      toast('Script generation failed: ' + e.message, true);
+    } finally {
+      btn.disabled = false; ind.classList.remove('show');
+    }
+  }
+
+  function copyScript() {
+    const txt = document.getElementById('vr-full-script').value;
+    navigator.clipboard.writeText(txt).then(() => toast('Script copied'));
+  }
+
+  async function showRecorder() {
+    vrCurrentScript = document.getElementById('vr-full-script').value.trim();
+    document.getElementById('vr-script-reminder').textContent =
+      vrCurrentScript.substring(0, 300) + (vrCurrentScript.length > 300 ? '...' : '');
+
+    try {
+      vrStream = await navigator.mediaDevices.getUserMedia({ video: { width:1280, height:720 }, audio: true });
+      document.getElementById('vr-live').srcObject = vrStream;
+      document.getElementById('vr-step3').style.display = 'block';
+      document.getElementById('vr-step3').scrollIntoView({behavior:'smooth',block:'start'});
+    } catch(e) {
+      toast('Camera access denied: ' + e.message, true);
+    }
+  }
+
+  function startRecording() {
+    if (!vrStream) return;
+    vrChunks = []; vrRecordedBlob = null;
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
+                     MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
+    vrMediaRecorder = new MediaRecorder(vrStream, { mimeType });
+    vrMediaRecorder.ondataavailable = e => { if (e.data.size > 0) vrChunks.push(e.data); };
+    vrMediaRecorder.onstop = () => {
+      vrRecordedBlob = new Blob(vrChunks, { type: mimeType });
+      const url = URL.createObjectURL(vrRecordedBlob);
+      document.getElementById('vr-playback').src = url;
+      document.getElementById('vr-save-btn').disabled = false;
+      toast('Recording done — review then Save & Get Link');
+    };
+    vrMediaRecorder.start(1000);
+    let secs = 0;
+    const timerEl = document.getElementById('vr-timer');
+    vrTimerInterval = setInterval(() => {
+      secs++;
+      const m = Math.floor(secs/60), s = secs % 60;
+      timerEl.textContent = `● ${m}:${s.toString().padStart(2,'0')}`;
+      if (secs >= 120) { stopRecording(); toast('2-minute limit reached'); }
+    }, 1000);
+    document.getElementById('vr-start-btn').disabled = true;
+    document.getElementById('vr-stop-btn').disabled = false;
+  }
+
+  function stopRecording() {
+    if (vrMediaRecorder && vrMediaRecorder.state !== 'inactive') vrMediaRecorder.stop();
+    clearInterval(vrTimerInterval);
+    document.getElementById('vr-start-btn').disabled = false;
+    document.getElementById('vr-stop-btn').disabled = true;
+  }
+
+  function retake() {
+    document.getElementById('vr-playback').src = '';
+    document.getElementById('vr-save-btn').disabled = true;
+    document.getElementById('vr-timer').textContent = '';
+    vrRecordedBlob = null; vrChunks = [];
+    toast('Ready to retake — click Start Recording');
+  }
+
+  async function saveVideoResume() {
+    if (!vrRecordedBlob) { toast('No recording to save', true); return; }
+    const btn = document.getElementById('vr-save-btn');
+    const ind = document.getElementById('vr-upload-indicator');
+    btn.disabled = true; ind.classList.add('show');
+    try {
+      const b64 = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result.split(',')[1]);
+        reader.onerror = rej;
+        reader.readAsDataURL(vrRecordedBlob);
+      });
+      const vid = document.getElementById('vr-playback');
+      const duration = Math.round(vid.duration) || null;
+      const r = await fetch(API + '/save-video-resume', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          video_base64: b64,
+          mime_type: vrRecordedBlob.type,
+          jd_title: vrCurrentJDTitle,
+          script: vrCurrentScript,
+          duration_seconds: duration
+        })
+      });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+      const videoUrl = data.video_url;
+      if (vrStream) vrStream.getTracks().forEach(t => t.stop());
+      document.getElementById('vr-result-url').value = videoUrl;
+      document.getElementById('vr-open-link').href = videoUrl;
+      document.getElementById('vr-final-player').src = videoUrl;
+      document.getElementById('vr-step4').style.display = 'block';
+      document.getElementById('vr-step4').scrollIntoView({behavior:'smooth',block:'start'});
+      toast('Video saved — permanent link ready!');
+    } catch(e) {
+      toast('Upload failed: ' + e.message, true);
+      btn.disabled = false;
+    } finally {
+      ind.classList.remove('show');
+    }
+  }
+
+  function copyVideoUrl() {
+    const url = document.getElementById('vr-result-url').value;
+    navigator.clipboard.writeText(url).then(() => toast('Link copied'));
+  }
+
+  function resetVideoBuilder() {
+    ['vr-step2','vr-step3','vr-step4'].forEach(id => document.getElementById(id).style.display='none');
+    document.getElementById('vr-jd').value = '';
+    document.getElementById('vr-role').value = '';
+    document.getElementById('vr-full-script').value = '';
+    vrRecordedBlob = null; vrChunks = []; vrCurrentScript = '';
+    document.getElementById('vr-step1').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // Teleprompter
+  function launchTeleprompter() {
+    const script = document.getElementById('vr-full-script').value.trim();
+    if (!script) { toast('Generate a script first', true); return; }
+    const tp = document.getElementById('vr-teleprompter');
+    document.getElementById('vr-teleprompter-text').textContent = script;
+    tp.style.display = 'flex'; tp.scrollTop = 0;
+  }
+  function closeTeleprompter() {
+    document.getElementById('vr-teleprompter').style.display = 'none';
+    clearInterval(tpScrollInterval); tpScrollInterval = null;
+    document.getElementById('tp-play-btn').textContent = '▶ Auto-Scroll';
+  }
+  function toggleTeleprompterScroll() {
+    const btn = document.getElementById('tp-play-btn');
+    const tp  = document.getElementById('vr-teleprompter');
+    if (tpScrollInterval) {
+      clearInterval(tpScrollInterval); tpScrollInterval = null;
+      btn.textContent = '▶ Auto-Scroll';
+    } else {
+      tpScrollInterval = setInterval(() => { tp.scrollTop += tpScrollSpeed; }, 50);
+      btn.textContent = '⏸ Pause';
+    }
+  }
+  function scrollTeleprompter(dir) {
+    tpScrollSpeed = Math.max(0.3, Math.min(5, tpScrollSpeed + dir * 0.3));
+  }
+
+  // Video Library
+  async function loadVideoLibrary() {
+    const el = document.getElementById('vr-library-list');
+    try {
+      const r = await fetch(API + '/video-resumes');
+      const rows = await r.json();
+      if (!rows.length || rows.error) {
+        el.innerHTML = "<div class='empty-state'><div class='empty-state-icon'>🎬</div><div class='empty-state-text'>No video resumes yet — create your first one in Video Resume tab!</div></div>";
+        return;
+      }
+      el.innerHTML = rows.map(v => {
+        const date = v.created_at ? new Date(v.created_at).toLocaleString() : '';
+        const dur  = v.duration_seconds ? `${v.duration_seconds}s` : '';
+        const safeUrl = (v.video_url||'').replace(/'/g, '%27');
+        return `<div class="card" style="margin-bottom:14px;">
+          <div class="card-title">🎬 ${v.jd_title||'Video Resume'} ${dur?`<span class="badge badge-purple">${dur}</span>`:''}</div>
+          <div style="font-size:11px;color:#4a5568;margin-bottom:10px;">${date}</div>
+          <video src="${v.video_url||''}" controls style="width:100%;max-width:480px;border-radius:8px;background:#000;display:block;margin-bottom:10px;"></video>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input type="text" value="${v.video_url||''}" readonly style="flex:1;min-width:200px;font-size:11px;background:#0f0f13;border-color:#2d3748;color:#68d391;"/>
+            <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('${safeUrl}').then(()=>toast('Link copied'))">Copy Link</button>
+            <a href="${v.video_url||'#'}" target="_blank" class="btn btn-ghost btn-sm">Open ↗</a>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = `<div class='empty-state'><div class='empty-state-text'>Error: ${e.message}</div></div>`; }
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  function toast(msg, error=false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast'+(error?' error':'')+' show';
+    setTimeout(()=>el.classList.remove('show'), 3500);
+  }
+</script>
+</body>
+</html>
