@@ -761,7 +761,7 @@
   async function loadSessions() {
     const el = document.getElementById('sessions-list');
     try {
-      const sessions = await sb('GET', '/rest/v1/interviewer_sessions?select=*&order=created_at.desc&limit=50');
+      const sessions = await sb('GET', '/rest/v1/interviewer_sessions?select=*&order=started_at.desc&limit=50');
       const ivIds = [...new Set(sessions.map(s => s.interviewer_id).filter(Boolean))];
       let ivMap = {};
       if (ivIds.length) { const ivs = await sb('GET', `/rest/v1/interviewers?id=in.(${ivIds.join(',')})&select=id,name,email,company`); ivs.forEach(iv => ivMap[iv.id]=iv); }
@@ -773,7 +773,7 @@
         const status = s.is_complete?`<span class="badge badge-green">Done</span>`:s.budget_exhausted?`<span class="badge badge-red">Budget Out</span>`:`<span class="badge badge-blue">Active</span>`;
         return `<div class="session-row">
           <div class="session-info"><div class="session-name">${iv.name||'Unknown'} ${iv.company?`<span style="color:#4a5568;font-weight:400;">@ ${iv.company}</span>`:''}</div>
-          <div class="session-meta">${iv.email||''} · ${s.role_context||'No role'} · ${s.created_at?new Date(s.created_at).toLocaleDateString():''}</div></div>
+          <div class="session-meta">${iv.email||''} · ${s.role_context||'No role'} · ${s.started_at?new Date(s.started_at).toLocaleDateString():''}</div></div>
           <div style="text-align:right;margin-right:14px;"><div style="font-size:11px;color:#4a5568;margin-bottom:3px;">$${(s.cost_usd||0).toFixed(4)} / $${(s.budget_usd||1).toFixed(2)}</div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col};"></div></div></div>
           ${status}
